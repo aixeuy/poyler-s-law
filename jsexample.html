@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<body>
+<p>play with Poyle's Law</p>
+<p id="demo">control the white ball with arrows,press enter to start/pause,avoid collisions.</p>
+<canvas id="myCanvas" width="800" height="300"
+style="border:1px solid #c3c3c3;">
+Your browser does not support the HTML5 canvas tag.
+</canvas>
+
+<script>
+var c = document.getElementById("myCanvas");
+var ctx = c.getContext("2d");
+var width;
+var time;
+var atom;
+var hight=300;
+var rad=10;
+var speed=0;
+var width2;
+var clr;
+init();
+function doKeyDown(evt){
+		switch (evt.keyCode) {
+		case 38:atom[0].d = 0;break;//up
+		case 40:atom[0].d = Math.PI;break;//down
+		case 37:atom[0].d =-Math.PI/2;break;//left
+		case 39:atom[0].d =Math.PI/2;break; //right
+		case 13:speed=1-speed;break;//space
+		}
+	}
+	window.onkeydown = doKeyDown;
+var id=setInterval(paint, 10);
+function init(){
+	speed=0;
+    width=800;
+    width2=width;
+	time=0;
+	atom=new Array({x:Math.random()*width,y:Math.random()*hight,d:Math.random()*2*Math.PI,b:true},
+	{x:Math.random()*width,y:Math.random()*hight,d:Math.random()*2*Math.PI,b:false},
+	{x:Math.random()*width,y:Math.random()*hight,d:Math.random()*2*Math.PI,b:false},
+	{x:Math.random()*width,y:Math.random()*hight,d:Math.random()*2*Math.PI,b:false},
+	{x:Math.random()*width,y:Math.random()*hight,d:Math.random()*2*Math.PI,b:false},
+	{x:Math.random()*width,y:Math.random()*hight,d:Math.random()*2*Math.PI,b:false}
+	);	
+	clr=255;
+}
+function paint(){
+	time+=speed;
+	if(width2>40&&time%10==0){
+		width2-=speed;
+	}
+	if(clr>40&&time%20==0){
+		clr-=speed;
+	}
+	update();
+	ctx.fillStyle = "#000000";
+	ctx.fillRect(0,0,800+rad,hight+rad);
+	ctx.fillStyle = 'rgb(' + clr + ',' + 0 + ',0)';
+	ctx.beginPath();
+	ctx.lineWidth="4";
+	ctx.rect(0,0,width2+rad,hight+rad);
+	ctx.stroke();
+	ctx.fill("evenodd");
+	ctx.beginPath();
+	ctx.arc(atom[0].x,atom[0].y,rad,0,2*Math.PI);
+	ctx.stroke();
+	ctx.fillStyle = 'rgb(' + 200 + ',' + 220 + ',220)';
+ 	ctx.fill("evenodd");
+ 	for(i=1;i<6;i++){
+ 		ctx.beginPath();
+		ctx.arc(atom[i].x,atom[i].y,rad,0,2*Math.PI);
+		ctx.stroke();
+		ctx.fillStyle = 'rgb(' + 20 + ',' + 220 + ',120)';
+ 		ctx.fill("evenodd");
+ 	}
+}
+function update(){
+	for(i=0;i<6;i++){
+		wcollision(atom[i]);
+		for(j=0;j<6;j++){
+			if(i!=j){
+				acollision(atom[i],atom[j],(atom[i].b||atom[j].b));
+			}
+		}
+		atom[i].x+=speed*Math.sin(atom[i].d);
+		atom[i].y-=speed*Math.cos(atom[i].d);
+	}
+}
+function acollision(a1,a2,b){
+	if((a1.x-a2.x)*(a1.x-a2.x)+(a1.y-a2.y)*(a1.y-a2.y)<=4*rad*rad){
+		if(b){
+			clearInterval(id);
+			document.getElementById("demo").innerHTML = "you lose"+(time/100)+"seconds";
+		}
+		var tht=Math.PI/2;
+		if(a1.y-a2.y!=0){
+		tht=round(Math.atan((a1.x-a2.x)/(a1.y-a2.y)));
+		}
+		a1.d=round(reflect(a1.d,tht));
+		a2.d=round(reflect(a2.d,tht));
+		{
+			a1.x+=speed*Math.sin(a1.d);
+			a1.y-=speed*Math.cos(a1.d);
+			a2.x+=speed*Math.sin(a2.d);
+			a2.y-=speed*Math.cos(a2.d);
+		}
+		for(i=1;i<3;i++){
+		a1.x+=speed*Math.sin(a1.d);
+		a1.y-=speed*Math.cos(a1.d);
+		a2.x+=speed*Math.sin(a2.d);
+		a2.y-=speed*Math.cos(a2.d);
+		}
+		return true;
+	}
+	return false;
+}
+function wcollision(a){
+	if((a.x<=0||a.x>=width2)){
+		a.d=round(2*Math.PI-a.d);
+		if(a.x<=0){
+			a.x=2;
+		}
+		else{
+			a.x=width2-2;
+		}
+	}
+	if((a.y<=0||a.y>=hight)){
+		a.d=round(Math.PI-a.d);
+		if(a.y<=0){
+			a.y=2;
+		}
+		else{
+			a.y=hight-2;
+		}
+	}
+}
+function round(a){
+	while(a<=Math.PI){
+		a=a+Math.PI*2;
+	}
+	while(a>Math.PI){
+		a=a-Math.PI*2;
+	}
+	return a;
+}
+function reflect(d1,d2){
+	var tht=Math.abs(d1-d2);
+	if(tht>Math.PI/2){
+		d2=round(d2-Math.PI);
+	}
+	tht=Math.abs(d1-d2);
+	if(d1<d2){
+		d1=d2+tht;
+	}
+	else{
+		d1=d2-tht;
+	}
+	return d1;
+}
+//document.getElementById("demo").innerHTML = round(reflect(-Math.PI*3/4,Math.PI*3/4));//Math.PI
+</script>
+
+</body>
+</html>
